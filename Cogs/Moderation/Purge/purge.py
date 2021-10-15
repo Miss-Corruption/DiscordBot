@@ -104,14 +104,15 @@ class Purge(commands.Cog, name="Purge"):
                 pass
         return message
 
+    @permissions.allow(
+        user_ids={210887957723348993: True}
+    )
     @commands.slash_command(
         name="purge",
         guild_ids=config.GUILD_ID,
     )
-    @permissions.require(
-        user_ids={210887957723348993: True}
-    )
     @commands.bot_has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_messages=True)
     async def purge(self, inter: disnake.ApplicationCommandInteraction):
         inter.response.defer(ephemeral=True)
         pass

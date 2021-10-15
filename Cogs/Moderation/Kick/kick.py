@@ -17,6 +17,7 @@ class Kick(commands.Cog, name="Kick"):
         guild_ids=Utils.Configuration.GUILD_ID
     )
     @commands.bot_has_permissions(kick_members=True)
+    @commands.has_permissions(kick_members=True)
     async def kick(
             self,
             inter: disnake.ApplicationCommandInteraction,

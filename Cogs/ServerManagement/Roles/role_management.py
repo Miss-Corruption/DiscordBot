@@ -1,4 +1,5 @@
 import json
+import os
 import re
 
 from disnake import CategoryChannel, Colour, ApplicationCommandInteraction
@@ -25,10 +26,16 @@ class RoleManagement(Cog):  # TODO delete name=
         self.bot = bot
         self.colour_regex = re.compile(r"^#[0-9A-F]{6}$", re.IGNORECASE)
         # Opening JSON file
-        with open("data/temp.json", "r") as json_file:
-            self.data = json.load(json_file)
+        if os.path.exists("data/temp.json"):
+            with open("data/temp.json", "r") as json_file:
+                self.data = json.load(json_file)
+        else:
+            self.data = {"Language": {}, "Topic": {}}
+            # save to create defaults
+            os.mkdir("data")
+            self.save_data()
 
-    async def save_data(self, *args):
+    def save_data(self, *args):
         print("saving...")  # TODO remove this
         with open("data/temp.json", "w") as json_file:
             json.dump(self.data, json_file)  # this commit the changes to the json file
@@ -142,6 +149,3 @@ class RoleManagement(Cog):  # TODO delete name=
                 await inter.response.send_message(
                     f"Topic `{name}` {f'(now `{new_name}`)' if new_name != name else ''} edited successfully!")
 
-
-def setup(bot):
-    bot.add_cog(RoleManagement(bot))

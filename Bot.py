@@ -30,9 +30,6 @@ class Rocchan(Bot):
         )
 
         for module_path in Path('Cogs').rglob('*.py'):
-            if 'CustomCommands' in module_path.parts:
-                continue
-
             # convert 'dir1/dir2/file.py' to 'dir1.dir2.file'
             module_name = str(module_path).removesuffix('.py').replace(os.path.sep, '.')
             # import module, check if `setup` method exists
