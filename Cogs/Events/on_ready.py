@@ -19,7 +19,3 @@ class Events(Cog, name="events.on_ready"):
         )
 
         self.bot.starting = False
-
-#
-# def setup(bot: Rocchan):
-#     bot.add_cog(Events(bot))

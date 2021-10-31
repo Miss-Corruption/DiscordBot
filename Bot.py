@@ -2,17 +2,16 @@ import importlib
 import logging
 import os
 import traceback
-from asyncio import get_event_loop
+from asyncio import get_event_loop_policy
 from datetime import date
 from logging import basicConfig, DEBUG
 from pathlib import Path
 
-from disnake import (
-    Intents,
-)
-from disnake.ext.commands import Bot
+from disnake import Intents
+from disnake.ext.commands import Bot, ExtensionFailed
 
 from Utils.Configuration import config
+from Data import Database as db
 
 
 class Rocchan(Bot):
@@ -24,27 +23,27 @@ class Rocchan(Bot):
             help_command=None,
             case_insensitive=True,
             strip_after_prefix=True,
-            self_bot=False,
             sync_commands_debug=True,
+            sync_permissions=True,
             **kwargs,
         )
 
-        for module_path in Path('Cogs').rglob('*.py'):
+        for module_path in Path("Cogs").rglob("*.py"):
             # convert 'dir1/dir2/file.py' to 'dir1.dir2.file'
-            module_name = str(module_path).removesuffix('.py').replace(os.path.sep, '.')
+            module_name = str(module_path).removesuffix(".py").replace(os.path.sep, ".")
             # import module, check if `setup` method exists
             module = importlib.import_module(module_name)
-            if hasattr(module, 'setup'):
+            if hasattr(module, "setup"):
                 try:
                     self.load_extension(module_name)
-                    logging.debug(f"Loaded extension: {module_name}")
-                    print(f"Loaded extension: {module_name}")
-                except Exception:
+                    logging.debug(f"Loaded extension: {module_name[5:-9]}")
+                    print(f"Loaded extension: {module_name[5:-9]}")
+                except ExtensionFailed:
                     logging.error(
-                        f'Failed to load the following extension: {module_name}.\n'
-                        + f'--------------------------------------------------------\n'
+                        f"Failed to load the following extension: {module_name[5:-9]}.\n"
+                        + f"--------------------------------------------------------\n"
                         + traceback.format_exc()
-                        + f'--------------------------------------------------------'
+                        + f"--------------------------------------------------------"
                     )
 
     @staticmethod
@@ -55,7 +54,7 @@ class Rocchan(Bot):
             guild_messages=True,
             guild_reactions=True,
             members=True,
-            voice_states=True,
+            presences=True,
         )
         return intents
 
@@ -64,6 +63,7 @@ class Rocchan(Bot):
         """Setup the bot with a token from data.constants or the .env file"""
         bot = self()
         try:
+            await db.init()
             await bot.start(config.BOT_TOKEN, **kwargs)
         except KeyboardInterrupt:
             await bot.close()
@@ -83,8 +83,8 @@ if __name__ == "__main__":
     )
 
     os.system("cls" if os.name == "nt" else "clear")
-    print(f"Bot is starting...")
-    loop = get_event_loop()
+    print("Bot is starting...")
+    loop = get_event_loop_policy().get_event_loop()
     try:
         loop.run_until_complete(Rocchan.setup())  # Starts the bot
     except KeyboardInterrupt:
