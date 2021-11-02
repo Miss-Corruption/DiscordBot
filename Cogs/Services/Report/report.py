@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 
 import disnake
@@ -6,9 +5,9 @@ from disnake import MessageCommandInteraction, Embed, MessageInteraction
 from disnake.ext import commands
 from disnake.ext.commands import message_command
 
+from Utils.Configuration import config
 from Utils.Views import Confirm
 from .reportview import ReportView
-from Utils.Configuration import config
 
 
 class ReportMessage(commands.Cog, name="ReportMessage"):
@@ -21,7 +20,7 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
         confirm_emb = disnake.Embed(
             title="Confirmation needed",
             description="Would you like to report this message? This will ping moderators, and false "
-            "reporting will be treated as spam and punished accordingly.",
+                        "reporting will be treated as spam and punished accordingly.",
             colour=0x3B1261,
         )
 

@@ -1,5 +1,4 @@
 import json
-import re
 from typing import Tuple
 
 from disnake import (
@@ -55,7 +54,7 @@ class RoleManagement(Cog, name="ServerManagement.RoleManagement"):
         self.bot = bot
 
         # TODO change these
-        self.file_path = "Data/Channels.json"
+        self.file_path = "../Data/Channels.json"
         self.languages_embed = Embed(title="Rules & Roles", color=0x3B1261)
 
         self.languages_embed.add_field(

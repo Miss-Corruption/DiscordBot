@@ -1,13 +1,6 @@
-import asyncio
-import datetime
-import json
-
-from disnake import ApplicationCommandInteraction, Member
-from disnake.ext.commands import Cog, slash_command, guild_permissions, Param, Bot
+from disnake.ext.commands import Cog, Bot
 
 from Data.Database.author import Authors
-
-from Utils.Configuration import config
 
 
 class VacationTimer:

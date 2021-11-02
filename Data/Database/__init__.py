@@ -17,7 +17,7 @@ TORTOISE_ORM = {
             "default_connection": "master",
         },
     },
-    "connections": {"master": "sqlite://Data/Database.sqlite"},
+    "connections": {"master": "sqlite:..//Data/Database.sqlite"},
 }
 
 

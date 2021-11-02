@@ -1,4 +1,3 @@
-import asyncio
 import textwrap
 from datetime import datetime
 

@@ -42,4 +42,6 @@ async def futuretime_autocomp(inter, value):
         converted = FutureTime(inter, value)
     except commands.BadArgument as exc:
         return {str(exc): value}
-    return {converted.dt.strftime("on %a, %d %b %Y, at %H:%M:%S in UTC"): value}
+    return {
+        converted.dt.strftime("on %a, %d %b %Y, at %H:%M:%S in UTC + 1 / CET"): value
+    }
