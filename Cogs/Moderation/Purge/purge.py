@@ -7,7 +7,7 @@ from disnake.ext import commands
 from disnake.ext.commands import Param
 
 from Utils.Configuration import config
-from Utils.Mod.cleanup import mass_purge
+from Utils.cleanup import mass_purge
 from Utils.Views import Confirm
 
 
@@ -204,9 +204,7 @@ class Purge(commands.Cog, name="Purge"):
         try:
             before = await channel.fetch_message(int(message))
         except disnake.NotFound:
-            return await ctx.response.send_message(
-                "Message not found! :c", ephemeral=True
-            )
+            return await ctx.edit_original_message(content="Message not found! :c")
 
         to_delete = await self.get_messages_for_deletion(
             channel=channel, amount=amount, before=before, delete_pinned=delete_pinned

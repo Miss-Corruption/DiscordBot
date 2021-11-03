@@ -126,7 +126,7 @@ class RoleManagement(Cog, name="ServerManagement.RoleManagement"):
     """ METHODS """
 
     async def save_data(self, *args) -> None:
-        with open("Data/Channels.json", "w") as json_file:
+        with open("../Data/Channels.json", "w") as json_file:
             json.dump(
                 self.data, json_file, indent=2
             )  # this commit the changes to the json file

@@ -5,9 +5,20 @@ import aiohttp
 import disnake
 from disnake import Intents
 from disnake.ext.commands import Bot, Context
-from loguru import logger
+
+# from loguru import logger
+import logging
 
 from Data import Database
+
+logger = logging.getLogger("disnake")
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename="disnake.log", encoding="utf-8", mode="w")
+handler.setFormatter(
+    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
+)
+logger.addHandler(handler)
+
 
 __all__ = ["Rocchan"]
 
@@ -34,7 +45,8 @@ class Rocchan(Bot):
         #     logger.info("Database initialized")
         # except Exception:
         #     print(traceback.format_exc())
-        logger.info("Bot was started")
+        # logger.info("Bot was started")
+        return await super().start(token, reconnect=reconnect)
 
     def load_extensions(self, cogs: Context = None, path: str = "Cogs."):
         """Loads the default set of extensions or a seperate one if given"""

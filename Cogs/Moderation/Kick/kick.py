@@ -4,7 +4,7 @@ from disnake.ext.commands import Param
 
 import Utils
 from Utils.Configuration import config
-from Utils.Mod.action_log import send_to_action_log
+from Utils.action_log import send_to_action_log
 
 
 class Kick(commands.Cog, name="Kick"):

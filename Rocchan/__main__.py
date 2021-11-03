@@ -1,5 +1,6 @@
 import argparse
 import os
+import traceback
 from itertools import chain
 from os import listdir, path
 
@@ -17,7 +18,7 @@ args = parser.parse_args()
 
 bot = Rocchan("cc!", debug=args.debug, asyncio_debug=args.asyncio_debug)
 logger.add(
-    "../Logs/{time}.log",
+    "../Logs/Rocchan/{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
     rotation="500 MB",
     backtrace=True,
