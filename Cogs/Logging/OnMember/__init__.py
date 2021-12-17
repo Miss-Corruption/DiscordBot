@@ -1,5 +1,5 @@
-from .on_member import Logging
+from .on_member import MemberLogging
 
 
 def setup(bot):
-    bot.add_cog(Logging(bot))
+    bot.add_cog(MemberLogging(bot))

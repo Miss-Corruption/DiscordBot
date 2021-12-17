@@ -1,6 +1,6 @@
-git+https://github.com/EQUENOS/disnake
+git+https://github.com/DisnakeDev/disnake
 tortoise-orm[accel]
 dateparser~=1.1.0
-aiohttp~=3.7.4.post0
+aiohttp~=3.8.1
 loguru~=0.5.3
 python-dotenv~=0.19.1

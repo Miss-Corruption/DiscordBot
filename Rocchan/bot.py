@@ -1,29 +1,61 @@
-import traceback
 from typing import Any, Literal
 
 import aiohttp
 import disnake
 from disnake import Intents
 from disnake.ext.commands import Bot, Context
-
-# from loguru import logger
-import logging
+from loguru import logger
 
 from Data import Database
-
-logger = logging.getLogger("disnake")
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(filename="disnake.log", encoding="utf-8", mode="w")
-handler.setFormatter(
-    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
-logger.addHandler(handler)
-
 
 __all__ = ["Rocchan"]
 
 
+def make_filter(name):
+    def filter(record):
+        return record["extra"].get("name") == name
+
+    return filter
+
+
+logger.add(
+    "../Logs/Bot/Log_{time:YYYY-MM-DD}.log",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation="12:00",
+    compression="zip",
+    filter=make_filter("main"),
+)
+
+logger.add(
+    "../Logs/Action/Log_{time:YYYY-MM-DD}.log",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation="12:00",
+    compression="zip",
+    filter=make_filter("action"),
+)
+
+logger.add(
+    "../Logs/Messages/Log_{time:YYYY-MM-DD}.log",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation="12:00",
+    compression="zip",
+    filter=make_filter("messages"),
+)
+
+logger.add(
+    "../Logs/Members/Log_{time:YYYY-MM-DD}.log",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation="12:00",
+    compression="zip",
+    filter=make_filter("members"),
+)
+
+
 class Rocchan(Bot):
+    main_logger = logger.bind(name="main")
+    action_logger = logger.bind(name="action")
+    messages_logger = logger.bind(name="messages")
+    member_logger = logger.bind(name="members")
     help_command: Literal[None] = None
 
     def __init__(self, prefix: str, **kwargs: Any):
@@ -40,12 +72,7 @@ class Rocchan(Bot):
 
     async def start(self, token: str, *, reconnect: bool = True) -> None:
         user_id, created_at, hmac = disnake.utils.parse_token(token)
-        # try:
-        #     # await Database.init()
-        #     logger.info("Database initialized")
-        # except Exception:
-        #     print(traceback.format_exc())
-        # logger.info("Bot was started")
+        self.main_logger.info(f"START [ID: {user_id}]")
         return await super().start(token, reconnect=reconnect)
 
     def load_extensions(self, cogs: Context = None, path: str = "Cogs."):
@@ -53,10 +80,12 @@ class Rocchan(Bot):
         for extension in cogs or self._extensions:
             try:
                 self.load_extension(f"{path}{extension}")
-                print(f"Loaded cog: {extension}")
+                self.main_logger.info(f"Loaded extension: {extension}")
             except Exception as e:
-                logger.error(f"LoadError: {extension}\n" f"{type(e).__name__}: {e}")
-        logger.info("All cogs loaded")
+                self.main_logger.exception(
+                    f"LoadError: {extension}\n" f"{type(e).__name__}: {e}"
+                )
+        self.main_logger.info("All cogs loaded")
 
     @staticmethod
     def get_intents():

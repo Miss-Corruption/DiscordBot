@@ -1,12 +1,23 @@
+from __future__ import annotations
+
 import asyncio
 import datetime
-import textwrap
+from textwrap import shorten
 
-import disnake
-from disnake import Embed
+from disnake import (
+    ConnectionClosed,
+    ApplicationCommandInteraction,
+    Embed,
+    HTTPException,
+    Thread,
+    TextChannel,
+    ui,
+)
 from disnake.ext import commands
+from disnake.utils import format_dt, utcnow, MISSING
 
 from Data.Database.remind import Reminders
+from Rocchan import Rocchan
 from Utils import time
 from Utils.Views import Confirm
 from Utils.converters import FutureTime, futuretime_autocomp
@@ -22,8 +33,12 @@ class Timer:
         self.args = extra.get("args", [])
         self.kwargs = extra.get("kwargs", {})
         self.event = record.event
-        self.created_at = record.created
-        self.expires = record.expires
+        self.created_at = record.created.astimezone(datetime.timezone.utc).replace(
+            tzinfo=None
+        )
+        self.expires = record.expires.astimezone(datetime.timezone.utc).replace(
+            tzinfo=None
+        )
         self.author_id = record.author_id
 
     @classmethod
@@ -61,7 +76,7 @@ class Timer:
 class Reminder(commands.Cog):
     """Reminders to do something."""
 
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: Rocchan):
         self.bot = bot
         self._have_data = asyncio.Event()
         self._current_timer = None
@@ -70,19 +85,9 @@ class Reminder(commands.Cog):
     def cog_unload(self):
         self._task.cancel()
 
-    async def cog_command_error(self, ctx, error):
-        if isinstance(error, commands.BadArgument):
-            await ctx.send(error)
-        if isinstance(error, commands.TooManyArguments):
-            await ctx.send(
-                f"You called the {ctx.command.name} command with too many arguments."
-            )
-
     async def get_active_timer(self, *, days=7):
         record = await (
-            Reminders.filter(
-                expires__gt=disnake.utils.utcnow() + datetime.timedelta(days=days)
-            )
+            Reminders.filter(expires__lt=utcnow() + datetime.timedelta(days=days))
             .order_by("expires")
             .first()
         )
@@ -115,7 +120,7 @@ class Reminder(commands.Cog):
                 # so we're gonna cap it off at 40 days
                 # see: http://bugs.python.org/issue20493
                 timer = self._current_timer = await self.wait_for_active_timers(days=40)
-                now = disnake.utils.utcnow()
+                now = utcnow().replace(tzinfo=None)
 
                 if timer.expires >= now:
                     to_sleep = (timer.expires - now).total_seconds()
@@ -124,7 +129,7 @@ class Reminder(commands.Cog):
                 await self.call_timer(timer)
         except asyncio.CancelledError:
             raise
-        except (OSError, disnake.ConnectionClosed):
+        except (OSError, ConnectionClosed):
             self._task.cancel()
             self._task = self.bot.loop.create_task(self.dispatch_timers())
 
@@ -146,6 +151,8 @@ class Reminder(commands.Cog):
         event: str
             The name of the event to trigger.
             Will transform to 'on_{event}_timer_complete'.
+        author_id: int
+            ID of this timer.
         \*args
             Arguments to pass to the event
         \*\*kwargs
@@ -166,7 +173,7 @@ class Reminder(commands.Cog):
         try:
             now = kwargs.pop("created")
         except KeyError:
-            now = disnake.utils.utcnow()
+            now = utcnow()
 
         # Remove timezone information since the database does not deal with it
         # cSpell:ignore astimezone
@@ -218,7 +225,7 @@ class Reminder(commands.Cog):
     @reminder.sub_command(name="create")
     async def reminder_create(
         self,
-        inter: disnake.ApplicationCommandInteraction,
+        inter: ApplicationCommandInteraction,
         when: str = commands.Param(
             converter=FutureTime, autocomplete=futuretime_autocomp
         ),
@@ -228,21 +235,13 @@ class Reminder(commands.Cog):
         Reminds you of something after a certain amount of time.
         Parameters
         ----------
-        when: Any direct date (e.g. YYYY-MM-DD) or a human readable offset.
+        time: Any direct date (e.g. YYYY-MM-DD) or a human readable offset.
         reason: Something to remind you of
         """
 
-        rem_created = Embed(
-            title="Reminder created:",
-            description=f"Reminder created at {disnake.utils.format_dt(when.dt, 'R')}:\n {reason}",
-            colour=0x3B1261,
+        await inter.response.send_message(
+            f"Alright {inter.author.mention}, {format_dt(when.dt, 'R')}: {reason}"
         )
-        rem_created.set_author(
-            name=f"{inter.author.display_name}",
-            icon_url=f"{inter.author.display_avatar}",
-        )
-
-        await inter.response.send_message(embed=rem_created)
         msg = await inter.original_message()
         await self.create_timer(
             when.dt,
@@ -250,12 +249,12 @@ class Reminder(commands.Cog):
             inter.author.id,
             inter.channel.id,
             reason,
-            created=inter.created_at,
+            created=inter.created_at.replace(tzinfo=None),
             message_id=msg.id,
         )
 
     @reminder.sub_command(name="list")
-    async def reminder_list(self, inter: disnake.ApplicationCommandInteraction):
+    async def reminder_list(self, inter: ApplicationCommandInteraction):
         """Shows the 10 latest currently running reminders."""
 
         records = await (
@@ -269,7 +268,7 @@ class Reminder(commands.Cog):
                 "No currently running reminders.", ephemeral=True
             )
 
-        e = disnake.Embed(colour=0x0084C7, title="Reminders")
+        e = Embed(colour=0x0084C7, title="Reminders")
 
         if len(records) == 10:
             e.set_footer(text="Only showing up to 10 reminders.")
@@ -279,19 +278,17 @@ class Reminder(commands.Cog):
             )
 
         for row in records:
-            shorten = textwrap.shorten(row.extra["args"][1], width=512)
+            short_desc = shorten(row.extra["args"][1], width=512)
             e.add_field(
-                name=f'{row.id}: {disnake.utils.format_dt(row.expires, "R")}',
-                value=shorten,
+                name=f'{row.id}: {format_dt(row.expires, "R")}',
+                value=short_desc,
                 inline=False,
             )
 
         await inter.response.send_message(embed=e, ephemeral=True)
 
     @reminder.sub_command(name="delete")
-    async def reminder_delete(
-        self, inter: disnake.ApplicationCommandInteraction, id: int
-    ):
+    async def reminder_delete(self, inter: ApplicationCommandInteraction, id: int):
         """
         Deletes a reminder by its ID (use reminder list command).
         Parameters
@@ -321,7 +318,7 @@ class Reminder(commands.Cog):
         )
 
     @reminder.sub_command(name="clear")
-    async def reminder_clear(self, inter: disnake.ApplicationCommandInteraction):
+    async def reminder_clear(self, inter: ApplicationCommandInteraction):
         """Clears all reminders you have set."""
 
         # For UX purposes this has to be two queries.
@@ -335,24 +332,21 @@ class Reminder(commands.Cog):
                 "You don't have any reminders to delete.", ephemeral=True
             )
 
-        async def callback(value, interaction):
-            if not value:
-                return await interaction.response.send_message("Aborting")
-            await (
-                Reminders.filter(event="reminder", author_id=inter.author.id).delete()
-            )
-            if self._current_timer and self._current_timer.author_id == inter.author.id:
-                self._task.cancel()
-                self._task = self.bot.loop.create_task(self.dispatch_timers())
-
-            await interaction.response.edit_message(
-                f'Successfully deleted {total} reminder{"s" if total > 1 else ""}.'
-            )
-
-        view = Confirm(callback, listen_to=(inter.author.id,))
+        view = Confirm(author_id=inter.author.id)
         await inter.response.send_message(
             f'Are you sure you want to delete {total} reminder{"s" if total > 1 else ""}?',
             view=view,
+        )
+
+        if not await view.start():
+            return await inter.edit_original_message("Aborting")
+        await (Reminders.filter(event="reminder", author_id=inter.author.id).delete())
+        if self._current_timer and self._current_timer.author_id == inter.author.id:
+            self._task.cancel()
+            self._task = self.bot.loop.create_task(self.dispatch_timers())
+
+        await inter.edit_original_message(
+            f'Successfully deleted {total} reminder{"s" if total > 1 else ""}.'
         )
 
     @commands.Cog.listener()
@@ -364,31 +358,26 @@ class Reminder(commands.Cog):
             channel = self.bot.get_channel(channel_id) or (
                 await self.bot.fetch_channel(channel_id)
             )
-        except disnake.HTTPException:
+        except HTTPException:
             return
 
         guild_id = (
-            channel.guild.id
-            if isinstance(channel, (disnake.TextChannel, disnake.Thread))
-            else "@me"
+            channel.guild.id if isinstance(channel, (TextChannel, Thread)) else "@me"
         )
         message_id = timer.kwargs.get("message_id")
-        view = disnake.utils.MISSING
-
-        remind_emb = Embed(
-            title="Reminding",
-            description=f"{timer.created_delta}: {message}",
-            colour=0x3B1261,
-        )
-        remind_emb.add_field(name="Created by:", value=f"<@{author_id}>")
+        msg = f"<@{author_id}>, {timer.created_delta}: {message}"
+        view = MISSING
 
         if message_id:
             url = f"https://discord.com/channels/{guild_id}/{channel.id}/{message_id}"
-            view = disnake.ui.View()
-            view.add_item(disnake.ui.Button(label="Go to original message", url=url))
+            view = ui.View()
+            view.add_item(ui.Button(label="Go to original message", url=url))
 
         try:
-            msg = await channel.send(f"<@{author_id}>", embed=remind_emb, view=view)
-            await msg.edit(content=None)
-        except disnake.HTTPException:
+            await channel.send(msg, view=view)
+        except HTTPException:
             return
+
+
+def setup(bot):
+    bot.add_cog(Reminder(bot))

@@ -1,30 +1,14 @@
-import argparse
 import os
-import traceback
 from itertools import chain
 from os import listdir, path
 
 from dotenv import load_dotenv
-from loguru import logger
 
 from Rocchan.bot import Rocchan
 
 load_dotenv()
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--debug", action="store_true")
-parser.add_argument("--asyncio-debug", action="store_true")
-args = parser.parse_args()
-
-bot = Rocchan("cc!", debug=args.debug, asyncio_debug=args.asyncio_debug)
-logger.add(
-    "../Logs/Rocchan/{time:YYYY-MM-DD}.log",
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    rotation="500 MB",
-    backtrace=True,
-    diagnose=True,
-    level="TRACE",
-)
+bot = Rocchan("R.")
 
 dirs = chain.from_iterable(
     [

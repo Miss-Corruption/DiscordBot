@@ -20,7 +20,7 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
         confirm_emb = disnake.Embed(
             title="Confirmation needed",
             description="Would you like to report this message? This will ping moderators, and false "
-                        "reporting will be treated as spam and punished accordingly.",
+            "reporting will be treated as spam and punished accordingly.",
             colour=0x3B1261,
         )
 
@@ -67,19 +67,19 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
                     title="Message reported",
                     description=f"A message was reported in: {inter.target.channel.mention}",
                     timestamp=datetime.utcnow(),
-                    color=0x3B1261
+                    color=0x3B1261,
                 )
 
                 report_emb.set_author(
                     name=f"Message reported by:\n{inter.user.display_name}",
-                    icon_url=inter.user.avatar.url
+                    icon_url=inter.user.avatar.url,
                 )
 
                 if inter.target.content:
                     report_emb.add_field(
                         name=f"Message Content:",
                         value=f"{inter.target.content}",
-                        inline=False
+                        inline=False,
                     )
 
                 report_emb.add_field(
@@ -90,31 +90,28 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
                 if inter.target.attachments:
                     image = inter.target.attachments[0]
                     report_emb.add_field(
-                        name=f"Message Attachment:",
-                        value="\u200b",
-                        inline=False
+                        name=f"Message Attachment:", value="\u200b", inline=False
                     )
                     report_emb.set_image(url=image.url)
 
-                report_emb.set_footer(
-                    text="No action was taken yet."
-                )
+                report_emb.set_footer(text="No action was taken yet.")
 
                 await inter.guild.get_channel(config.ACTION_LOG).send(
                     embed=report_emb,
-                    view=ReportView(inter.target, inter.target.jump_url))
+                    view=ReportView(inter.target, inter.target.jump_url),
+                )
 
             case _:
                 report_emb = disnake.Embed(
                     title="Embed reported",
                     description=f"An embed was reported in: {inter.target.channel.mention}",
                     timestamp=datetime.utcnow(),
-                    colour=0x3b1261
+                    colour=0x3B1261,
                 )
 
                 report_emb.set_author(
                     name=f"Message reported by:\n{inter.user.display_name}",
-                    icon_url=inter.user.avatar.url
+                    icon_url=inter.user.avatar.url,
                 )
 
                 report_emb.add_field(
@@ -124,4 +121,5 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
 
                 await inter.guild.get_channel(config.ACTION_LOG).send(
                     embed=report_emb,
-                    view=ReportView(inter.target, inter.target.jump_url))
+                    view=ReportView(inter.target, inter.target.jump_url),
+                )
