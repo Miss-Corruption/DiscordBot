@@ -19,8 +19,9 @@ def make_filter(name):
 
 
 logger.add(
-    "../Logs/Bot/Log_{time:YYYY-MM-DD}.log",
+    "../Logs/Rocchan/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("main"),
@@ -29,6 +30,7 @@ logger.add(
 logger.add(
     "../Logs/Action/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("action"),
@@ -37,6 +39,7 @@ logger.add(
 logger.add(
     "../Logs/Messages/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("messages"),
@@ -45,6 +48,7 @@ logger.add(
 logger.add(
     "../Logs/Members/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("members"),
@@ -53,6 +57,7 @@ logger.add(
 logger.add(
     "../Logs/SlashCommands/{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    encoding="utf-8",
     rotation="500 MB",
     backtrace=True,
     diagnose=True,

@@ -377,7 +377,3 @@ class Reminder(commands.Cog):
             await channel.send(msg, view=view)
         except HTTPException:
             return
-
-
-def setup(bot):
-    bot.add_cog(Reminder(bot))

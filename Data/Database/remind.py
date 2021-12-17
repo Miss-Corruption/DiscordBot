@@ -1,4 +1,5 @@
-from . import *
+from tortoise.models import Model
+from tortoise.fields import BigIntField, DatetimeField, CharField, JSONField
 
 
 class Reminders(Model):

@@ -44,21 +44,21 @@ class UserInfo(commands.Cog, name="User Info"):
 
         user_emb.add_field(name="Current Status", value=user.raw_status, inline=True)
         act_type = ""
-        match user.activity.type:
-            case ActivityType.listening:
-                act_type = "Listening to: "
-            case ActivityType.playing:
-                act_type = "Currently playing: "
-            case ActivityType.streaming:
-                act_type = "Currently streaming: "
-            case ActivityType.watching:
-                act_type = "Currently watching: "
-        tmp_wrap = textwrap.fill(f"{act_type}{user.activity.name}", width=60)
-        user_emb.add_field(
-            name="Current Activity",
-            value=f"{act_type}{user.activity.name}",
-            inline=True,
-        )
+        if user.activity:
+            match user.activity.type:
+                case ActivityType.listening:
+                    act_type = "Listening to: "
+                case ActivityType.playing:
+                    act_type = "Currently playing: "
+                case ActivityType.streaming:
+                    act_type = "Currently streaming: "
+                case ActivityType.watching:
+                    act_type = "Currently watching: "
+            user_emb.add_field(
+                name="Current Activity",
+                value=f"{act_type}{user.activity.name}",
+                inline=True,
+            )
         user_emb.add_field(name="\u200b", value=f"\u200b", inline=True)
 
         roles = [role.mention for role in user.roles if not role.is_default() and role]
