@@ -50,12 +50,23 @@ logger.add(
     filter=make_filter("members"),
 )
 
+logger.add(
+    "../Logs/SlashCommands/{time:YYYY-MM-DD}.log",
+    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    rotation="500 MB",
+    backtrace=True,
+    diagnose=True,
+    level="TRACE",
+    filter=make_filter("slashcmd"),
+)
+
 
 class Rocchan(Bot):
     main_logger = logger.bind(name="main")
     action_logger = logger.bind(name="action")
     messages_logger = logger.bind(name="messages")
     member_logger = logger.bind(name="members")
+    slash_command_logger = logger.bind(name="slashcmd")
     help_command: Literal[None] = None
 
     def __init__(self, prefix: str, **kwargs: Any):
