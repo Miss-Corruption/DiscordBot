@@ -1,7 +1,7 @@
 from datetime import datetime
 
 import disnake
-from disnake import MessageCommandInteraction, Embed, MessageInteraction
+from disnake import MessageCommandInteraction, Embed, MessageInteraction, Message
 from disnake.ext import commands
 from disnake.ext.commands import message_command
 
@@ -55,17 +55,17 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
         return view.value
 
     @message_command(name="Report Message", guild_ids=config.GUILD_ID)
-    async def report_message(self, inter: MessageCommandInteraction):
+    async def report_message(self, inter: MessageCommandInteraction, message: Message):
 
         conf = await self.confirm_report(inter)
         if not conf:
             return
 
-        match inter.target.embeds:
+        match message.embeds:
             case []:
                 report_emb = Embed(
                     title="Message reported",
-                    description=f"A message was reported in: {inter.target.channel.mention}",
+                    description=f"A message was reported in: {message.channel.mention}",
                     timestamp=datetime.utcnow(),
                     color=0x3B1261,
                 )
@@ -75,20 +75,20 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
                     icon_url=inter.user.avatar.url,
                 )
 
-                if inter.target.content:
+                if message.content:
                     report_emb.add_field(
                         name=f"Message Content:",
-                        value=f"{inter.target.content}",
+                        value=f"{message.content}",
                         inline=False,
                     )
 
                 report_emb.add_field(
                     name="Message was written by:",
-                    value=f"{inter.target.author.mention}",
+                    value=f"{message.author.mention}",
                 )
 
-                if inter.target.attachments:
-                    image = inter.target.attachments[0]
+                if message.attachments:
+                    image = message.attachments[0]
                     report_emb.add_field(
                         name=f"Message Attachment:", value="\u200b", inline=False
                     )
@@ -98,13 +98,13 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
 
                 await inter.guild.get_channel(config.ACTION_LOG).send(
                     embed=report_emb,
-                    view=ReportView(inter.target, inter.target.jump_url),
+                    view=ReportView(message, message.jump_url),
                 )
 
             case _:
                 report_emb = disnake.Embed(
                     title="Embed reported",
-                    description=f"An embed was reported in: {inter.target.channel.mention}",
+                    description=f"An embed was reported in: {message.channel.mention}",
                     timestamp=datetime.utcnow(),
                     colour=0x3B1261,
                 )
@@ -116,10 +116,10 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
 
                 report_emb.add_field(
                     name="Embed was sent by:",
-                    value=f"{inter.target.author.mention}",
+                    value=f"{message.author.mention}",
                 )
 
                 await inter.guild.get_channel(config.ACTION_LOG).send(
                     embed=report_emb,
-                    view=ReportView(inter.target, inter.target.jump_url),
+                    view=ReportView(message, message.jump_url),
                 )

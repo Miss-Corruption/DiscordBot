@@ -1,3 +1,5 @@
+import traceback
+from itertools import takewhile
 from typing import Any, Literal
 
 import aiohttp
@@ -16,6 +18,16 @@ def make_filter(name):
         return record["extra"].get("name") == name
 
     return filter
+
+
+def tracing_formatter(record):
+    # Filter out frames coming from Loguru internals
+    frames = takewhile(
+        lambda f: "/loguru/" not in f.filename, traceback.extract_stack()
+    )
+    stack = " > ".join("{}:{}:{}".format(f.filename, f.name, f.lineno) for f in frames)
+    record["extra"]["stack"] = stack
+    return "{level} | {extra[stack]} - {message}\n{exception}"
 
 
 logger.add(
@@ -56,7 +68,7 @@ logger.add(
 
 logger.add(
     "../Logs/SlashCommands/{time:YYYY-MM-DD}.log",
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
+    format=tracing_formatter,
     encoding="utf-8",
     rotation="500 MB",
     backtrace=True,

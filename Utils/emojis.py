@@ -14,5 +14,5 @@ def _partial(name: str, id: int, animated: bool = False):
 
 
 accept_mark = _partial("accept_mark", 892770746013724683)
-deny_mark = _partial("denny_mark", 892770746034704384)
+deny_mark = _partial("deny_mark", 892770746034704384)
 choice_marks = (accept_mark, deny_mark)
