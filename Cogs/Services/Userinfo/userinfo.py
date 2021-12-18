@@ -2,7 +2,7 @@ import textwrap
 from datetime import datetime
 
 import disnake
-from disnake import UserCommandInteraction, ActivityType, Member
+from disnake import UserCommandInteraction, ActivityType, Member, User
 from disnake.ext import commands
 from disnake.ext.commands import user_command
 
@@ -14,7 +14,7 @@ class UserInfo(commands.Cog, name="User Info"):
         self.bot = bot
 
     @user_command(name="User Info", guild_ids=config.GUILD_ID)
-    async def user_info(self, inter: UserCommandInteraction, user: Member):
+    async def user_info(self, inter: UserCommandInteraction, user: User):
         delta = f"{user.joined_at - user.created_at}"
 
         user_emb = disnake.Embed(
