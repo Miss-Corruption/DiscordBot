@@ -1,16 +1,20 @@
+import os
 import traceback
 from itertools import takewhile
 from typing import Any, Literal
 
 import aiohttp
 import disnake
-from disnake import Intents
-from disnake.ext.commands import Bot, Context
+from disnake import Intents, Member, Embed
+from disnake.ext.commands import Bot, Context, errors
+from dotenv import load_dotenv
 from loguru import logger
 
 from Data import Database
 
 __all__ = ["Rocchan"]
+
+load_dotenv()
 
 
 def make_filter(name):
@@ -31,18 +35,17 @@ def tracing_formatter(record):
 
 
 logger.add(
-    "../Logs/Rocchan/Log_{time:YYYY-MM-DD}.log",
+    "../Logs/Bot/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("main"),
 )
 
+
 logger.add(
     "../Logs/Action/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("action"),
@@ -51,40 +54,45 @@ logger.add(
 logger.add(
     "../Logs/Messages/Log_{time:YYYY-MM-DD}.log",
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    encoding="utf-8",
     rotation="12:00",
     compression="zip",
     filter=make_filter("messages"),
 )
 
 logger.add(
-    "../Logs/Members/Log_{time:YYYY-MM-DD}.log",
-    format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
-    encoding="utf-8",
+    "../Logs/SlashCommands/Log_{time:YYYY-MM-DD}.log",
+    format=tracing_formatter,
     rotation="12:00",
     compression="zip",
-    filter=make_filter("members"),
-)
-
-logger.add(
-    "../Logs/SlashCommands/{time:YYYY-MM-DD}.log",
-    format=tracing_formatter,
-    encoding="utf-8",
-    rotation="500 MB",
-    backtrace=True,
-    diagnose=True,
-    level="TRACE",
-    filter=make_filter("slashcmd"),
+    filter=make_filter("slash"),
 )
 
 
 class Rocchan(Bot):
     main_logger = logger.bind(name="main")
+    slash_command_logger = logger.bind(name="slashcmd")
     action_logger = logger.bind(name="action")
     messages_logger = logger.bind(name="messages")
-    member_logger = logger.bind(name="members")
-    slash_command_logger = logger.bind(name="slashcmd")
+    join_logger = logger.bind(name="join")
+    message_channel = int(os.environ["MESSAGE_CHANNEL"])
+    action_channel = int(os.environ["ACTION_CHANNEL"])
+    join_channel = int(os.environ["JOIN_CHANNEL"])
     help_command: Literal[None] = None
+
+    @classmethod
+    async def send_log(
+        cls,
+        member: Member,
+        embed: Embed,
+        log_type: Literal["join", "action", "message"],
+    ):
+        channels = {
+            "join": cls.join_channel,
+            "message": cls.message_channel,
+            "action": cls.action_channel,
+        }
+        channel = member.guild.get_channel(channels[log_type])
+        await channel.send(embed=embed)
 
     def __init__(self, prefix: str, **kwargs: Any):
         super().__init__(
@@ -97,11 +105,6 @@ class Rocchan(Bot):
 
         self.loop.run_until_complete(Database.init())
         self.http_session = aiohttp.ClientSession(loop=self.loop)
-
-    async def start(self, token: str, *, reconnect: bool = True) -> None:
-        user_id, created_at, hmac = disnake.utils.parse_token(token)
-        self.main_logger.info(f"START [ID: {user_id}]")
-        return await super().start(token, reconnect=reconnect)
 
     def load_extensions(self, cogs: Context = None, path: str = "Cogs."):
         """Loads the default set of extensions or a seperate one if given"""
@@ -126,3 +129,17 @@ class Rocchan(Bot):
             presences=True,
         )
         return intents
+
+    async def start(self, token: str, *, reconnect: bool = True) -> None:
+        user_id, created_at, hmac = disnake.utils.parse_token(token)
+        self.main_logger.info(f"START [ID: {user_id}]")
+        return await super().start(token, reconnect=reconnect)
+
+    async def on_command_error(self, context: Context, exception: errors.CommandError) -> None:
+        match exception:
+            case errors.CommandNotFound:
+                print("Not found")
+            case errors.CommandOnCooldown:
+                print("Cooldown")
+            case errors.DisabledCommand:
+                print("Disabled")

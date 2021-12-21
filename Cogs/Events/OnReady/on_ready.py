@@ -1,4 +1,4 @@
-from disnake import Activity, ActivityType
+from disnake import Activity, ActivityType, Embed
 from disnake.ext.commands import Cog
 
 from Rocchan import Rocchan

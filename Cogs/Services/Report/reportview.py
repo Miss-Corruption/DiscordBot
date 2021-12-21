@@ -26,22 +26,22 @@ class Dropdown(disnake.ui.Select):
 
         options = [
             disnake.SelectOption(
-                label="10-minute Mute",
-                description=f"Mute {self.user.display_name} for ten minutes",
+                label="10-minute timeout",
+                description=f"Timeout {self.user.display_name} for ten minutes",
                 emoji="🔇",
-                value="10Mute",
+                value="10-timeout",
             ),
             disnake.SelectOption(
-                label="20-minute Mute",
-                description=f"Mute {self.user.display_name} for 20 minutes",
+                label="20-minute Timeout",
+                description=f"Timeout {self.user.display_name} for 20 minutes",
                 emoji="🔇",
-                value="20Mute",
+                value="20-timeout",
             ),
             disnake.SelectOption(
-                label="30-minute Mute",
-                description=f"Mute {self.user.display_name} for 30 minutes",
+                label="30-minute Timeout",
+                description=f"Timeout {self.user.display_name} for 30 minutes",
                 emoji="🔇",
-                value="30Mute",
+                value="30-timeout",
             ),
             disnake.SelectOption(
                 label="Kick",
@@ -69,11 +69,11 @@ class Dropdown(disnake.ui.Select):
         self.disabled = True
 
         match self.values[0]:
-            case "10Mute":
+            case "10-timeout":
                 pass
-            case "20Mute":
+            case "20-timeout":
                 pass
-            case "30Mute":
+            case "30-timeout":
                 pass
             case "Kick":
                 self.placeholder = f"{self.user.display_name} was kicked"
@@ -98,7 +98,6 @@ class Dropdown(disnake.ui.Select):
                     reason="Was banned via report",
                     delete_message_days=1,
                 )
-                print("Post Action")
                 pass
 
 

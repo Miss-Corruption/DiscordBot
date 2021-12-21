@@ -21,8 +21,7 @@ class MessageLogging(Cog, name="Logging.on_message"):
             )
             edit_emb.add_field(name="Before:", value=f"{message.content}")
             edit_emb.add_field(name="After:", value=f"{after.content}")
-            channel = message.guild.get_channel(int(self.log_channel))
-            await channel.send(embed=edit_emb)
+            await self.bot.send_log(message.author, edit_emb, log_type="message")
 
     @Cog.listener()
     async def on_message_delete(self, message: Message):
@@ -31,3 +30,4 @@ class MessageLogging(Cog, name="Logging.on_message"):
         )
         del_emb = Embed(title="Message got deleted", colour=0x3B1261)
         del_emb.add_field(name="Message Content:", value=f"{message.content}")
+        await self.bot.send_log(message.author, del_emb, log_type="message")
