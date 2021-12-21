@@ -1,4 +1,4 @@
-from disnake import ApplicationCommandInteraction
+from disnake import ApplicationCommandInteraction, MessageCommandInteraction
 from disnake.ext.commands import Cog, CommandError
 
 from Rocchan import Rocchan
@@ -20,6 +20,16 @@ class Logging(Cog, name="on_slash_command"):
     @Cog.listener()
     async def on_slash_command_error(
         self, interaction: ApplicationCommandInteraction, error: CommandError
+    ) -> None:
+        self.bot.slash_command_logger.exception(
+            f"Exception in: {interaction.application_command.qualified_name}"
+            f"\nError: {error}"
+            f"\nTraceback:"
+        )
+
+    @Cog.listener()
+    async def on_message_command_error(
+        self, interaction: MessageCommandInteraction, error: CommandError
     ) -> None:
         self.bot.slash_command_logger.exception(
             f"Exception in: {interaction.application_command.qualified_name}"

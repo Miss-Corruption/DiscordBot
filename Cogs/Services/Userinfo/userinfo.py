@@ -1,3 +1,4 @@
+import os
 import textwrap
 from datetime import datetime
 
@@ -5,16 +6,19 @@ import disnake
 from disnake import UserCommandInteraction, ActivityType, Member, User
 from disnake.ext import commands
 from disnake.ext.commands import user_command
+from dotenv import load_dotenv
 
-from Utils.Configuration import config
+load_dotenv()
 
 
 class UserInfo(commands.Cog, name="User Info"):
+    GUILD_ID = [int(os.environ["GUILD_ID"])]
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @user_command(name="User Info", guild_ids=config.GUILD_ID)
-    async def user_info(self, inter: UserCommandInteraction, user: User):
+    @user_command(name="User Info", guild_ids=GUILD_ID)
+    async def user_info(self, inter: UserCommandInteraction, user: Member):
         delta = f"{user.joined_at - user.created_at}"
 
         user_emb = disnake.Embed(

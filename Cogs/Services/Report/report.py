@@ -1,17 +1,23 @@
+import os
 from datetime import datetime
 
 import disnake
 from disnake import MessageCommandInteraction, Embed, MessageInteraction, Message
 from disnake.ext import commands
 from disnake.ext.commands import message_command
+from dotenv import load_dotenv
 
-from Utils.Configuration import config
+from Rocchan import Rocchan
 from Utils.Views import Confirm
 from .reportview import ReportView
 
+load_dotenv()
+
 
 class ReportMessage(commands.Cog, name="ReportMessage"):
-    def __init__(self, bot: commands.Bot):
+    GUILD_ID = [int(os.environ["GUILD_ID"])]
+
+    def __init__(self, bot: Rocchan):
         self.bot = bot
 
     @staticmethod
@@ -48,13 +54,13 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
                     await interaction.response.edit_message(embed=thank_emb, view=None),
                 )
 
-        view = Confirm(callback, listen_to=(ctx.author.id,))
+        view = Confirm(author_id=ctx.author.id)
         await ctx.send(embed=confirm_emb, view=view, ephemeral=True)
 
         await view.wait()
         return view.value
 
-    @message_command(name="Report Message", guild_ids=config.GUILD_ID)
+    @message_command(name="Report Message", guild_ids=GUILD_ID)
     async def report_message(self, inter: MessageCommandInteraction, message: Message):
 
         conf = await self.confirm_report(inter)
@@ -96,7 +102,7 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
 
                 report_emb.set_footer(text="No action was taken yet.")
 
-                await inter.guild.get_channel(config.ACTION_LOG).send(
+                await inter.guild.get_channel(self.bot.action_channel).send(
                     embed=report_emb,
                     view=ReportView(message, message.jump_url),
                 )
@@ -119,7 +125,7 @@ class ReportMessage(commands.Cog, name="ReportMessage"):
                     value=f"{message.author.mention}",
                 )
 
-                await inter.guild.get_channel(config.ACTION_LOG).send(
+                await inter.guild.get_channel(self.bot.action_channel).send(
                     embed=report_emb,
                     view=ReportView(message, message.jump_url),
                 )

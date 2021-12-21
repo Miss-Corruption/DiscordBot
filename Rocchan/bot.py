@@ -39,6 +39,7 @@ logger.add(
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
     rotation="12:00",
     compression="zip",
+    encoding="utf-8",
     filter=make_filter("main"),
 )
 
@@ -48,6 +49,7 @@ logger.add(
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
     rotation="12:00",
     compression="zip",
+    encoding="utf-8",
     filter=make_filter("action"),
 )
 
@@ -56,6 +58,7 @@ logger.add(
     format="{time:YYYY-MM-DD at HH:mm:ss} | {level} | {message}",
     rotation="12:00",
     compression="zip",
+    encoding="utf-8",
     filter=make_filter("messages"),
 )
 
@@ -64,6 +67,7 @@ logger.add(
     format=tracing_formatter,
     rotation="12:00",
     compression="zip",
+    encoding="utf-8",
     filter=make_filter("slash"),
 )
 

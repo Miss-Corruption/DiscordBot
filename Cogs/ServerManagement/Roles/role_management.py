@@ -500,179 +500,179 @@ class RoleManagement(Cog, name="ServerManagement.RoleManagement"):
     async def on_slash_command_completion(self, _inter: ApplicationCommandInteraction):
         await self.save_data()
 
-    @Cog.listener()
-    async def on_button_click(self, inter: MessageInteraction):
-        if (
-            "Selection" not in self.data
-            or self.data["Selection"]["channel_id"] != inter.channel.id
-        ):
-            return
-
-        if inter.message.id == self.data["Selection"]["Languages_message_id"]:
-            lang_roles = set([l["role_id"] for l in self.data["Languages"].values()])
-            author_roles = set([r.id for r in inter.author.roles])
-            resp = ""
-
-            if (
-                self.data["Languages"][inter.component.custom_id]["role_id"]
-                not in author_roles
-            ):
-                await inter.author.add_roles(
-                    inter.guild.get_role(
-                        int(
-                            self.data["Languages"][inter.component.custom_id]["role_id"]
-                        )
-                    )
-                )
-
-                resp += (
-                    ("\n" if resp else "")
-                    + f"The language `@{inter.component.custom_id}` has been added successfully"
-                )
-            else:
-                await inter.author.remove_roles(
-                    inter.guild.get_role(
-                        int(
-                            self.data["Languages"][inter.component.custom_id]["role_id"]
-                        )
-                    )
-                )
-                role = inter.guild.get_role(int(list(author_roles & lang_roles)[0]))
-
-                resp = f"The language `@{role.name}` has been removed successfully"
-
-            try:
-                await inter.response.send_message(content=resp, ephemeral=True)
-            except (InteractionTimedOut, InteractionResponded):
-                return await inter.followup.send(
-                    resp,
-                    ephemeral=True,
-                )
-        elif inter.message.id == self.data["Selection"]["Flavors_message_id"]:
-            lang_roles = set([l["role_id"] for l in self.data["Languages"].values()])
-            author_roles = set([r.id for r in inter.author.roles])
-
-            if not author_roles & set(lang_roles):
-                try:
-                    return await inter.response.send_message(
-                        "You must choose a language before choosing a flavor!",
-                        ephemeral=True,
-                    )
-                except (InteractionTimedOut, InteractionResponded):
-                    return await inter.followup.send(
-                        "You must choose a language before choosing a flavor!",
-                        ephemeral=True,
-                    )
-            elif inter.component.custom_id == "NSFW":
-                nsfw_role = inter.guild.get_role(
-                    int(self.data["Selection"]["NSFW_role"]["id"])
-                )
-
-                if nsfw_role not in inter.author.roles:
-                    await inter.author.add_roles(nsfw_role)
-
-                    try:
-                        return await inter.response.send_message(
-                            "The NSFW role has been added successfully!",
-                            ephemeral=True,
-                        )
-                    except (InteractionTimedOut, InteractionResponded):
-                        return await inter.followup.send(
-                            "The NSFW role has been added successfully!",
-                            ephemeral=True,
-                        )
-                else:
-                    await inter.author.remove_roles(nsfw_role)
-
-                    try:
-                        return await inter.response.send_message(
-                            "The NSFW role has been removed successfully (therefore all the NSFW flavors you were subscribed to were removed)!",
-                            ephemeral=True,
-                        )
-                    except (InteractionTimedOut, InteractionResponded):
-                        return await inter.followup.send(
-                            "The NSFW role has been removed successfully (therefore all the NSFW flavors you were subscribed to were removed)!",
-                            ephemeral=True,
-                        )
-            elif (
-                inter.author.id
-                in self.data["Flavors"][inter.component.custom_id]["blacklist"]
-            ):
-                try:
-                    return await inter.response.send_message(
-                        "You choose this flavor because you're blacklisted from it!",
-                        ephemeral=True,
-                    )
-                except (InteractionTimedOut, InteractionResponded):
-                    return await inter.followup.send(
-                        "You choose this flavor because you're blacklisted from it!",
-                        ephemeral=True,
-                    )
-            elif self.data["Flavors"][inter.component.custom_id]["NSFW"]:
-                nsfw_role = inter.guild.get_role(
-                    int(self.data["Selection"]["NSFW_role"]["id"])
-                )
-
-                if nsfw_role not in inter.author.roles:
-                    try:
-                        return await inter.response.send_message(
-                            "You must have the NSFW role before choosing an NSFW flavor!",
-                            ephemeral=True,
-                        )
-                    except (InteractionTimedOut, InteractionResponded):
-                        return await inter.followup.send(
-                            "You must have the NSFW role before choosing an NSFW flavor!",
-                            ephemeral=True,
-                        )
-
-            if (
-                "members" in self.data["Flavors"][inter.component.custom_id]
-                and inter.author.id
-                in self.data["Flavors"][inter.component.custom_id]["members"]
-            ):
-                await inter.author.remove_roles(
-                    inter.guild.get_role(
-                        int(self.data["Flavors"][inter.component.custom_id]["role_id"])
-                    )
-                )
-                resp = f"The flavor `@{inter.component.custom_id}` has been removed successfully"
-            else:
-                await inter.author.add_roles(
-                    inter.guild.get_role(
-                        int(self.data["Flavors"][inter.component.custom_id]["role_id"])
-                    )
-                )
-                resp = f"The flavor `@{inter.component.custom_id}` has been added successfully"
-
-            try:
-                await inter.response.send_message(content=resp, ephemeral=True)
-            except (InteractionTimedOut, InteractionResponded):
-                return await inter.followup.send(
-                    resp,
-                    ephemeral=True,
-                )
-        elif (
-            "message_id" in self.data["Event"]
-            and inter.message.id == self.data["Event"]["message_id"]
-        ):
-            role = inter.guild.get_role(int(self.data["Event"]["role_id"]))
-
-            if role in inter.author.roles:
-                await inter.author.remove_roles(role)
-                resp = f"The event role `@{role}` has been removed successfully"
-            else:
-                await inter.author.add_roles(role)
-                resp = f"The event role `@{role}` has been added successfully"
-
-            try:
-                await inter.response.send_message(content=resp, ephemeral=True)
-            except (InteractionTimedOut, InteractionResponded):
-                return await inter.followup.send(
-                    resp,
-                    ephemeral=True,
-                )
-
-            await self.save_data()
+    # @Cog.listener()
+    # async def on_button_click(self, inter: MessageInteraction):
+    #     if (
+    #         "Selection" not in self.data
+    #         or self.data["Selection"]["channel_id"] != inter.channel.id
+    #     ):
+    #         return
+    #
+    #     if inter.message.id == self.data["Selection"]["Languages_message_id"]:
+    #         lang_roles = set([l["role_id"] for l in self.data["Languages"].values()])
+    #         author_roles = set([r.id for r in inter.author.roles])
+    #         resp = ""
+    #
+    #         if (
+    #             self.data["Languages"][inter.component.custom_id]["role_id"]
+    #             not in author_roles
+    #         ):
+    #             await inter.author.add_roles(
+    #                 inter.guild.get_role(
+    #                     int(
+    #                         self.data["Languages"][inter.component.custom_id]["role_id"]
+    #                     )
+    #                 )
+    #             )
+    #
+    #             resp += (
+    #                 ("\n" if resp else "")
+    #                 + f"The language `@{inter.component.custom_id}` has been added successfully"
+    #             )
+    #         else:
+    #             await inter.author.remove_roles(
+    #                 inter.guild.get_role(
+    #                     int(
+    #                         self.data["Languages"][inter.component.custom_id]["role_id"]
+    #                     )
+    #                 )
+    #             )
+    #             role = inter.guild.get_role(int(list(author_roles & lang_roles)[0]))
+    #
+    #             resp = f"The language `@{role.name}` has been removed successfully"
+    #
+    #         try:
+    #             await inter.response.send_message(content=resp, ephemeral=True)
+    #         except (InteractionTimedOut, InteractionResponded):
+    #             return await inter.followup.send(
+    #                 resp,
+    #                 ephemeral=True,
+    #             )
+    #     elif inter.message.id == self.data["Selection"]["Flavors_message_id"]:
+    #         lang_roles = set([l["role_id"] for l in self.data["Languages"].values()])
+    #         author_roles = set([r.id for r in inter.author.roles])
+    #
+    #         if not author_roles & set(lang_roles):
+    #             try:
+    #                 return await inter.response.send_message(
+    #                     "You must choose a language before choosing a flavor!",
+    #                     ephemeral=True,
+    #                 )
+    #             except (InteractionTimedOut, InteractionResponded):
+    #                 return await inter.followup.send(
+    #                     "You must choose a language before choosing a flavor!",
+    #                     ephemeral=True,
+    #                 )
+    #         elif inter.component.custom_id == "NSFW":
+    #             nsfw_role = inter.guild.get_role(
+    #                 int(self.data["Selection"]["NSFW_role"]["id"])
+    #             )
+    #
+    #             if nsfw_role not in inter.author.roles:
+    #                 await inter.author.add_roles(nsfw_role)
+    #
+    #                 try:
+    #                     return await inter.response.send_message(
+    #                         "The NSFW role has been added successfully!",
+    #                         ephemeral=True,
+    #                     )
+    #                 except (InteractionTimedOut, InteractionResponded):
+    #                     return await inter.followup.send(
+    #                         "The NSFW role has been added successfully!",
+    #                         ephemeral=True,
+    #                     )
+    #             else:
+    #                 await inter.author.remove_roles(nsfw_role)
+    #
+    #                 try:
+    #                     return await inter.response.send_message(
+    #                         "The NSFW role has been removed successfully (therefore all the NSFW flavors you were subscribed to were removed)!",
+    #                         ephemeral=True,
+    #                     )
+    #                 except (InteractionTimedOut, InteractionResponded):
+    #                     return await inter.followup.send(
+    #                         "The NSFW role has been removed successfully (therefore all the NSFW flavors you were subscribed to were removed)!",
+    #                         ephemeral=True,
+    #                     )
+    #         elif (
+    #             inter.author.id
+    #             in self.data["Flavors"][inter.component.custom_id]["blacklist"]
+    #         ):
+    #             try:
+    #                 return await inter.response.send_message(
+    #                     "You choose this flavor because you're blacklisted from it!",
+    #                     ephemeral=True,
+    #                 )
+    #             except (InteractionTimedOut, InteractionResponded):
+    #                 return await inter.followup.send(
+    #                     "You choose this flavor because you're blacklisted from it!",
+    #                     ephemeral=True,
+    #                 )
+    #         elif self.data["Flavors"][inter.component.custom_id]["NSFW"]:
+    #             nsfw_role = inter.guild.get_role(
+    #                 int(self.data["Selection"]["NSFW_role"]["id"])
+    #             )
+    #
+    #             if nsfw_role not in inter.author.roles:
+    #                 try:
+    #                     return await inter.response.send_message(
+    #                         "You must have the NSFW role before choosing an NSFW flavor!",
+    #                         ephemeral=True,
+    #                     )
+    #                 except (InteractionTimedOut, InteractionResponded):
+    #                     return await inter.followup.send(
+    #                         "You must have the NSFW role before choosing an NSFW flavor!",
+    #                         ephemeral=True,
+    #                     )
+    #
+    #         if (
+    #             "members" in self.data["Flavors"][inter.component.custom_id]
+    #             and inter.author.id
+    #             in self.data["Flavors"][inter.component.custom_id]["members"]
+    #         ):
+    #             await inter.author.remove_roles(
+    #                 inter.guild.get_role(
+    #                     int(self.data["Flavors"][inter.component.custom_id]["role_id"])
+    #                 )
+    #             )
+    #             resp = f"The flavor `@{inter.component.custom_id}` has been removed successfully"
+    #         else:
+    #             await inter.author.add_roles(
+    #                 inter.guild.get_role(
+    #                     int(self.data["Flavors"][inter.component.custom_id]["role_id"])
+    #                 )
+    #             )
+    #             resp = f"The flavor `@{inter.component.custom_id}` has been added successfully"
+    #
+    #         try:
+    #             await inter.response.send_message(content=resp, ephemeral=True)
+    #         except (InteractionTimedOut, InteractionResponded):
+    #             return await inter.followup.send(
+    #                 resp,
+    #                 ephemeral=True,
+    #             )
+    #     elif (
+    #         "message_id" in self.data["Event"]
+    #         and inter.message.id == self.data["Event"]["message_id"]
+    #     ):
+    #         role = inter.guild.get_role(int(self.data["Event"]["role_id"]))
+    #
+    #         if role in inter.author.roles:
+    #             await inter.author.remove_roles(role)
+    #             resp = f"The event role `@{role}` has been removed successfully"
+    #         else:
+    #             await inter.author.add_roles(role)
+    #             resp = f"The event role `@{role}` has been added successfully"
+    #
+    #         try:
+    #             await inter.response.send_message(content=resp, ephemeral=True)
+    #         except (InteractionTimedOut, InteractionResponded):
+    #             return await inter.followup.send(
+    #                 resp,
+    #                 ephemeral=True,
+    #             )
+    #
+    #         await self.save_data()
 
     """ SLASH COMMANDS GROUPS """
 

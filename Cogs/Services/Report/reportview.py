@@ -70,11 +70,38 @@ class Dropdown(disnake.ui.Select):
 
         match self.values[0]:
             case "10-timeout":
-                pass
+                await self.user.guild.timeout(
+                    user=self.user,
+                    seconds=600,
+                    reason="Timed out via reported message.",
+                )
+                await post_action(
+                    view=self.view,
+                    interaction=interaction,
+                    action=f"{self.user.display_name} was timed out for ten minutes."
+                )
             case "20-timeout":
-                pass
+                await self.user.guild.timeout(
+                    user=self.user,
+                    seconds=1200,
+                    reason="Timed out via reported message.",
+                )
+                await post_action(
+                    view=self.view,
+                    interaction=interaction,
+                    action=f"{self.user.display_name} was timed out for 20 minutes."
+                )
             case "30-timeout":
-                pass
+                await self.user.guild.timeout(
+                    user=self.user,
+                    seconds=18000,
+                    reason="Timed out via reported message.",
+                )
+                await post_action(
+                    view=self.view,
+                    interaction=interaction,
+                    action=f"{self.user.display_name} was timed out for 30 minutes."
+                )
             case "Kick":
                 self.placeholder = f"{self.user.display_name} was kicked"
                 await post_action(

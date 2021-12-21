@@ -25,7 +25,7 @@ class MessageLogging(Cog, name="Logging.on_message"):
 
     @Cog.listener()
     async def on_message_delete(self, message: Message):
-        self.bot.messages_logger.warn(
+        self.bot.messages_logger.warning(
             f"The following message got deleted in {message.channel}: {message.content}"
         )
         del_emb = Embed(title="Message got deleted", colour=0x3B1261)
